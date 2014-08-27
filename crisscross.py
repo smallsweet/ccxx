@@ -4,6 +4,7 @@ import random
 import math
 
 class Math_wrapper(object):
+  '''monkey patching is evil :D'''
   def __init__(self):
     def _random():
       return random.random()
@@ -14,6 +15,9 @@ class Math_wrapper(object):
     def _round(x):
       return round(x)
     self.round = _round
+    def _max(*args):
+      return max(args)
+    self.max = _max
 
 class Tile(object):
   def __init__(self, x, y, owner=None, group=None):
@@ -31,8 +35,8 @@ class Tile(object):
 class Mockup_self(object):
   def __init__(self):
     # functions and stuff
-    def _debug(string):
-      print string
+    def _debug(*args):
+      print args
     self.debug=_debug
 
     # create grid
@@ -78,11 +82,14 @@ class Mockup_self(object):
       t.tileGroupLetter = group
       self.tileGroups[group].append(t)
     #print self.tileGroups
+    tiles[10].owner = 'ogres' 
+    print tiles[10] 
     
     self.gold = 114
     self.team = 'ogres'
     self._opponent = 'humans'
     self._tiles = tiles
+    self.round = 0
     self.turns = [{
       "number": 0,
       "tileGroup": "A",
@@ -91,13 +98,13 @@ class Mockup_self(object):
       "humanBid": {
         "bid": 6,
         "team": "humans",
-        "desiredTile": self._tiles[0],
+        "desiredTile": self._tiles[4],
         "invalidBid": False,
         "invalidTile": False },
       "ogreBid": {
         "bid": 14,
         "team": "ogres",
-        "desiredTile": self._tiles[0],
+        "desiredTile": self._tiles[10],
         "invalidBid": False,
         "invalidTile": False }}]
   @property

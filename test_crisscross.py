@@ -48,6 +48,8 @@ def test_math():
   assert Math.random() > 0
   assert Math.floor(0.6) == 0
   assert Math.round(0.6) == 1
+  assert Math.max(0,6) == 6
+  assert Math.max(0,6,5) == 6
 
 if __name__=='__main__':
   test_tile_in_list()
