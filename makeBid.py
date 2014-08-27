@@ -111,6 +111,15 @@ def value_ogre(tiles):
   #self.debug('parents', parents)
   #self.debug('objectives', objectives)
   
+  
+  p = objectives[0] 
+  path = [p]
+  while len(parents[p.id]) > 0:
+    p = parents[p.id][0]
+    if p.owner == None:
+      path.append(p)
+  needed = len(path)
+
   visited = {}
   wanted = {}
   fringe = []
@@ -127,7 +136,7 @@ def value_ogre(tiles):
       fringe.append(p)
 
   #self.debug('wanted', wanted.values())
-  return wanted.values()
+  return (wanted.values(), needed)
 
 def tiley(tile):
   return tile.y
@@ -172,7 +181,7 @@ def sillystrategy(self):
 #result = sillystrategy(self)
 
 def better_strategy():
-  wanted = value_ogre(alltiles)
+  (wanted, needed) = value_ogre(alltiles)
   #self.debug('wanted tiles: ', wanted)
   bidtiles = self.tileGroups[tileGroupLetter]  # tiles available this turn
   #self.debug(bidtiles)
@@ -185,10 +194,11 @@ def better_strategy():
     index = Math.floor(Math.random() * len(candidates))
     bidtile = candidates[int(index)]
   if not bidtile: return None
-  tilesleft = 7 - len(self.myTiles)
+  #tilesleft = 7 - len(self.myTiles)
+  tilesleft = needed
   myBid = Math.floor(self.gold/Math.max(1,tilesleft))
   #self.debug(self.gold, myBid)
-  extra = Math.round(Math.random() * (self.gold % tilesleft))
+  extra = Math.round(Math.random() * (self.gold % Math.max(1,tilesleft)))
   #self.debug(extra)
   myBid += extra
   return {'gold': myBid, 'desiredTile': bidtile}
