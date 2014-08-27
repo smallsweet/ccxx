@@ -82,8 +82,12 @@ class Mockup_self(object):
       t.tileGroupLetter = group
       self.tileGroups[group].append(t)
     #print self.tileGroups
-    tiles[10].owner = 'ogres' 
-    print tiles[10] 
+    #tiles[7+1].owner = 'ogres' 
+    tiles[7+2].owner = 'ogres' 
+    tiles[7+3].owner = 'ogres' 
+    #tiles[7+4].owner = 'ogres' 
+    tiles[7+5].owner = 'ogres' 
+    tiles[7+6].owner = 'ogres' 
     
     self.gold = 114
     self.team = 'ogres'
@@ -107,6 +111,9 @@ class Mockup_self(object):
         "desiredTile": self._tiles[10],
         "invalidBid": False,
         "invalidTile": False }}]
+  @property
+  def getTile(self, x, y):
+    return self.myTiles[x][y]
   @property
   def myTiles(self):
     return filter(lambda x: x.owner == self.team, self._tiles)

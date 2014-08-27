@@ -37,6 +37,11 @@ def test_crisscross_mockup():
   assert t12 in self.opponentTiles
   assert len(self.turns) == 1
   assert self.turns[0]['tileGroup'] == 'A'
+  #
+  assert self._tiles[0].id == self.tileGrid[0][0].id
+  assert self._tiles[6].id == self.tileGrid[0][6].id
+  assert self._tiles[7].id == self.tileGrid[1][0].id
+  assert self._tiles[7*4+5].id == self.tileGrid[4][5].id
 
 def test_functions():
   self = cc.Mockup_self()

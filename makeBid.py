@@ -3,7 +3,6 @@
 import crisscross as cc
 
 self = cc.Mockup_self()
-self
 Math = cc.Math_wrapper()
 tileGroupLetter = 'B'
 
@@ -22,7 +21,7 @@ def calc_weight(tile):
     return 10
   if tile.owner == self.team:
       return 0
-  return 20000
+  return 700
 
 def numerical_sort(a,b):
   return a - b
@@ -35,13 +34,15 @@ def value_ogre(tiles):
   fringe = []
   parents = {}
   costs = {}
-  
+  bestcost = 9999999
+  objectives = []
+
   for t in tiles:
     # initialize set
     visited[t.id] = False
     # start from bottom row
     if t.y == 0:
-      parents[t.id] = None
+      parents[t.id] = []
       #self.debug('calling weight')
       cost = calc_weight(t)
       #self.debug('called weight')
@@ -59,18 +60,34 @@ def value_ogre(tiles):
     (curcost, current) = fringe.pop()
     #self.debug('popped', curcost, current)
     visited[current.id] = True
-    #self.debug('visited', current.id)
     costs[current.id] = curcost
+    #self.debug('visited', current.id)
+    # check if we have arrived
+    if current.y == 6:
+      if curcost == bestcost:
+        objectives.append(current)
+        #self.debug('adding objective', current)
+        continue
+      if curcost < bestcost:
+        #self.debug('best objective', current)
+        bestcost = curcost
+        objectives = [current]
+        continue
+      #self.debug('reached', current, 'with cost', curcost, 'ending')
+      break
     for n in current.neighbors:
       # skip opponent's tiles
       #if n.owner and n.owner != self.team: continue
       # only move upwards
-      if n.y <= current.y: continue
+      if n.y < current.y: continue
       #self.debug('inspecting', n.id)
+      cost = calc_weight(n)
       if visited[n.id]:
         #self.debug('already visited', n.id)
+        # even if already visited there might be an alternate path
+        if costs[n.id] == curcost + cost:
+          parents[n.id].append(current)
         continue
-      cost = calc_weight(n)
       # look for this cell in the fringe
       in_fringe = False
       for i in range(len(fringe)):
@@ -78,42 +95,38 @@ def value_ogre(tiles):
         if fcell.id == n.id:
           in_fringe = True
           if ((curcost + cost) < fcost):
+            #self.debug('found in fringe', n)
             # found a better path!
             fcost = (curcost + cost)
             fringe[i] = (fcost, fcell)
-            parents[n.id] = current.id
+            parents[n.id] = [current]
+          if ((curcost + cost) == fcost):
+            parents[n.id].append(current)
           break
       if not in_fringe:
         fringe.append((curcost + cost, n))
-        parents[n.id] = current
-  #self.debug('visited', visited)
-  #return (costs, parents)
+        parents[n.id] = [current]
+  #self.debug('visited', filter(lambda x: x[1], visited))
   #self.debug('costs', costs)
   #self.debug('parents', parents)
-  
-  last_row = []
-  for t in tiles:
-    if t.y == 6: 
-      last_row.append((costs[t.id], t))
-  last_row.sort(numerical_sort_tuple)
-  #self.debug('last row', last_row)
-
-  objectives = []
-  for l in last_row:
-    (cost, tile) = l
-    if cost <= last_row[0][0]:
-      objectives.append(tile)
   #self.debug('objectives', objectives)
-
+  
+  visited = {}
   wanted = {}
+  fringe = []
   for o in objectives:
-    curr = o
-    #self.debug('objective', curr)
-    while curr is not None:
-      #self.debug(curr)
-      if curr.owner is None:
-        wanted[curr.id] = curr
-      curr = parents[curr.id]
+    fringe.append(o)
+  while len(fringe) > 0:
+    curr = fringe.pop()
+    if visited.get(curr.id):
+      continue
+    visited[curr.id] = curr
+    if curr.owner is None:
+      wanted[curr.id] = curr
+    for p in parents[curr.id]:
+      fringe.append(p)
+
+  #self.debug('wanted', wanted.values())
   return wanted.values()
 
 def tiley(tile):
@@ -174,12 +187,14 @@ def better_strategy():
   if not bidtile: return None
   tilesleft = 7 - len(self.myTiles)
   myBid = Math.floor(self.gold/Math.max(1,tilesleft))
+  #self.debug(self.gold, myBid)
   extra = Math.round(Math.random() * (self.gold % tilesleft))
+  #self.debug(extra)
   myBid += extra
   return {'gold': myBid, 'desiredTile': bidtile}
 
 #self.debug('round, turn', self.round, len(self.turns))
 result = better_strategy()
-print result
-#return result
+#print result
+return result
 
