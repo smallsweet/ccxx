@@ -34,10 +34,6 @@ class Tile(object):
 
 class Mockup_self(object):
   def __init__(self):
-    # functions and stuff
-    def _debug(*args):
-      print args
-    self.debug=_debug
 
     # create grid
     width = 7
@@ -83,11 +79,11 @@ class Mockup_self(object):
       self.tileGroups[group].append(t)
     #print self.tileGroups
     #tiles[7+1].owner = 'ogres' 
-    tiles[7+2].owner = 'ogres' 
-    tiles[7+3].owner = 'ogres' 
+    #tiles[7+2].owner = 'ogres' 
+    #tiles[7+3].owner = 'ogres' 
     #tiles[7+4].owner = 'ogres' 
-    tiles[7+5].owner = 'ogres' 
-    tiles[7+6].owner = 'ogres' 
+    #tiles[7+5].owner = 'ogres' 
+    #tiles[7+6].owner = 'ogres' 
     
     self.gold = 114
     self.team = 'ogres'
@@ -111,6 +107,7 @@ class Mockup_self(object):
         "desiredTile": self._tiles[10],
         "invalidBid": False,
         "invalidTile": False }}]
+  # functions and stuff
   @property
   def getTile(self, x, y):
     return self.myTiles[x][y]
@@ -120,6 +117,30 @@ class Mockup_self(object):
   @property
   def opponentTiles(self):
     return filter(lambda x: x.owner == self._opponent, self._tiles)
+
+  def _string(self, func=None):
+    m = {'ogres': 'o', 'humans': 'h', None: ' '}
+    if not func:
+      func = lambda x: m[x.owner]
+    result = []
+    for y in reversed(range(7)):
+      result.append(str(y))
+      result.append(' ')
+      for x in range(7):
+        cell = self.tileGrid[x][y]
+        string = '[' + func(cell) + ']'
+        result.append(string)
+      result.append('\n')
+    result.append('  ')
+    for x in range(7):
+      result.append(' %d ' % x)
+    return ''.join(result)
+  def __str__(self):
+    return self._string()
+  def printtiles(self):
+    return self._string(func=lambda x: x.tileGroupLetter)
+  def debug(self, *args):
+    print ' '.join(map(lambda x: str(x), args))
 
 if __name__ == '__main__':
   pass

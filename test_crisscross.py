@@ -45,7 +45,13 @@ def test_crisscross_mockup():
 
 def test_functions():
   self = cc.Mockup_self()
-  self.debug('bla')
+  self.tileGrid[0][4].owner = 'humans'
+  self.tileGrid[2][4].owner = 'humans'
+  self.tileGrid[3][4].owner = 'humans'
+  self.tileGrid[4][4].owner = 'humans'
+  print self
+  print self.printtiles()
+
 
 def test_math():
   Math = cc.Math_wrapper()
