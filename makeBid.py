@@ -114,7 +114,6 @@ def makeBid(self, tileGroupLetter):
     #self.debug('parents', parents)
     #self.debug('objectives', objectives)
     
-    
     #print parents
     p = objectives[0] 
     path = [p]
@@ -149,57 +148,37 @@ def makeBid(self, tileGroupLetter):
   def tilex(tile):
     return tile.x
   
-  def sillystrategy(self):
-    tileIWant = None
-    bidtiles = self.tileGroups[tileGroupLetter]  # tiles available this turn
-    yowned = map(tiley, mytiles)
-    xowned = map(tilex, mytiles)
-    yowned.sort(numerical_sort)
-    xowned.sort(numerical_sort)
-    for tile in bidtiles:
-      if tile.owner: continue  # can't buy a tile that's been bought
-      if tile.y in yowned: continue
-      if tile.x not in [4, 5]: continue
-      tileIWant = tile
-      break
-      
-    # If none of the tiles you want are available, skip this round
-    if not tileIWant: return None
-    
-    # 2. Choose your bid price. You only pay and win the tile if your bid wins.
-    tilesleft = 7 - len(self.myTiles)
-    myBid = Math.floor(self.gold/Math.max(1,tilesleft))
-    extra = Math.round(Math.random() * (self.gold % tilesleft))
-    mybid += extra
-    return {'gold': myBid, 'desiredTile': tileIWant}
-  
-  
-  #self.debug('turn', len(self.turns))
-  #if self.round == 0 and len(self.turns) == 6:
-    #self.debug('alltiles', alltiles)
-    #(costs, parents) = value_ogre(alltiles)
-    #self.debug('costs', costs)
-    #self.debug('parents', parents)
-  #wanted = value_ogre(alltiles)
-  #self.debug('wanted tiles: ',wanted)
-  
-  #result = sillystrategy(self)
-  
+  def opp_bid_avg():
+    spent = 0
+    turns = 0
+    for turn in self.turns:
+      hb = turn.get('humanBid')
+      if not hb:
+        continue
+      bid = hb.get('bid')
+      if not bid:
+        continue
+      spent += bid
+      turns += 1
+    return spent/Math.max(1,turns)
+
   def rank_tiles(tile):
-    if tile.owner is not None:
+    if tile.owner != None:
       return 0
-    # one point for each distince tilegroup reachable from here
-    # one point for each neighboring opponent tile
+    score = 0
     tilegroups = {}
     tilegroups[tile.tileGroupLetter] = True
-    opptiles = 0
+    #opptiles = 0
     for n in tile.neighbors:
       tilegroups[n.tileGroupLetter] = True
-      if n.owner is not None and n.owner != self.team:
-        opptiles += 2
-    score = 5 + opptiles + len(tilegroups.keys()) 
+      if n.owner != None and n.owner != self.team:
+        score += 1
+    score += (len(tilegroups) - 1)
+    # favour center
+    score += (3 - (Math.abs(3-tile.x)))
+    score += (3 - (Math.abs(3-tile.y)))
     return score
-  
+
   def better_strategy():
     start_o = []
     end_o = []
@@ -217,6 +196,7 @@ def makeBid(self, tileGroupLetter):
     (wanted_h, needed_h) = value(alltiles, 'humans', start_h, end_h)
     self.debug('wanted human tiles: ', wanted_h)
     self.debug('wanted ogre tiles: ', wanted_o)
+    
     ranked_tiles = []
     for t in wanted_o:
       score = rank_tiles(t)
@@ -227,17 +207,8 @@ def makeBid(self, tileGroupLetter):
     ranked_tiles.sort(numerical_sort_tuple)
     ranked_tiles.reverse()
     self.debug(ranked_tiles)
-    
-    #bidtiles = self.tileGroups[tileGroupLetter]  # tiles available this turn
-    #self.debug(bidtiles)
+
     bidtile = None
-    #candidates = []
-    #for tile in bidtiles:
-    #  if tile in wanted_o:
-    #    candidates.append(tile)
-    #if len(candidates) > 0:
-    #  index = Math.floor(Math.random() * len(candidates))
-    #  bidtile = candidates[int(index)]
     for (score, t) in ranked_tiles:
       if t.tileGroupLetter == tileGroupLetter:
         bidtile = t
@@ -245,7 +216,7 @@ def makeBid(self, tileGroupLetter):
     if bidtile is None: return None
     #tilesleft = 7 - len(self.myTiles)
     tilesleft = needed_o
-    #self.debug('needed', needed)
+    self.debug('needed', needed_o)
     myBid = Math.floor(self.gold/Math.max(1,tilesleft))
     #self.debug(self.gold, myBid)
     extra = Math.round(Math.random() * (self.gold % Math.max(1,tilesleft)))

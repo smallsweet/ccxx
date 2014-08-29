@@ -52,7 +52,6 @@ def test_functions():
   print self
   print self.printtiles()
 
-
 def test_math():
   Math = cc.Math_wrapper()
   assert Math.random() < 1
@@ -61,6 +60,10 @@ def test_math():
   assert Math.round(0.6) == 1
   assert Math.max(0,6) == 6
   assert Math.max(0,6,5) == 6
+  assert Math.abs(0) == 0
+  assert Math.abs(4) == 4
+  assert Math.abs(-4) == 4
+  assert Math.abs(2-4) == 2
 
 if __name__=='__main__':
   test_tile_in_list()

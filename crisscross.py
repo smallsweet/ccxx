@@ -18,6 +18,9 @@ class Math_wrapper(object):
     def _max(*args):
       return max(args)
     self.max = _max
+    def _abs(x):
+      return abs(x)
+    self.abs = _abs
 
 class Tile(object):
   def __init__(self, x, y, owner=None, group=None):
