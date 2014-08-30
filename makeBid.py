@@ -148,7 +148,7 @@ def makeBid(self, tileGroupLetter):
   def tilex(tile):
     return tile.x
   
-  def opp_bid_avg():
+  def opp_bids():
     spent = 0
     turns = 0
     for turn in self.turns:
@@ -160,7 +160,7 @@ def makeBid(self, tileGroupLetter):
         continue
       spent += bid
       turns += 1
-    return spent/Math.max(1,turns)
+    return [spent, turns]
 
   def rank_tiles(tile):
     if tile.owner != None:
@@ -206,7 +206,7 @@ def makeBid(self, tileGroupLetter):
       ranked_tiles.append((score, t))
     ranked_tiles.sort(numerical_sort_tuple)
     ranked_tiles.reverse()
-    self.debug(ranked_tiles)
+    #self.debug(ranked_tiles)
 
     bidtile = None
     for (score, t) in ranked_tiles:
@@ -222,6 +222,29 @@ def makeBid(self, tileGroupLetter):
     extra = Math.round(Math.random() * (self.gold % Math.max(1,tilesleft)))
     #self.debug(extra)
     myBid += extra
+    if len(self.turns) < 4:
+      myBid = 11 + Math.round(Math.random() * 4)
+    #og = opp_bids()
+    #opponent_gold = 128 - og[0]
+    #self.debug(opponent_gold)
+
+    # if opponent has nothing to bid for, make a low bid
+    opponent_will_bid = False
+    for t in wanted_h:
+      if t.tileGroupLetter == tileGroupLetter:
+        opponent_will_bid = True
+        break
+    if not opponent_will_bid:
+      # steal a tile
+      myBid = 1
+
+    if needed_o == 1:
+      myBid = self.gold # bust the bank
+    # never bid more gold than opponent has
+    #myBid = int(Math.min(myBid, opponent_gold + 1))
+    if myBid < 0:
+      self.debug('bid below 0!', myBid)
+      myBid = 1
     return {'gold': myBid, 'desiredTile': bidtile}
   
   #self.debug('round, turn', self.round, len(self.turns))

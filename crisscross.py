@@ -12,12 +12,18 @@ class Math_wrapper(object):
     def _floor(x):
       return math.floor(x)
     self.floor = _floor
+    def _ceil(x):
+      return math.ceil(x)
+    self.ceil = _ceil
     def _round(x):
       return round(x)
     self.round = _round
     def _max(*args):
       return max(args)
     self.max = _max
+    def _min(*args):
+      return min(args)
+    self.min = _min
     def _abs(x):
       return abs(x)
     self.abs = _abs

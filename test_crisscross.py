@@ -57,6 +57,7 @@ def test_math():
   assert Math.random() < 1
   assert Math.random() > 0
   assert Math.floor(0.6) == 0
+  assert Math.ceil(0.2) == 1
   assert Math.round(0.6) == 1
   assert Math.max(0,6) == 6
   assert Math.max(0,6,5) == 6
