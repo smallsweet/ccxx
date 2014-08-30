@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+#import json
 import crisscross as cc
 
 #self = cc.Mockup_self()
@@ -148,19 +149,16 @@ def makeBid(self, tileGroupLetter):
   def tilex(tile):
     return tile.x
   
-  def opp_bids():
-    spent = 0
-    turns = 0
+  def bids(player):
+    result = []
+    keys = {'humans': 'humanBid', 'ogres': 'ogreBid'}
+    key = keys[player]
     for turn in self.turns:
-      hb = turn.get('humanBid')
-      if not hb:
-        continue
-      bid = hb.get('bid')
-      if not bid:
-        continue
-      spent += bid
-      turns += 1
-    return [spent, turns]
+      #self.debug(turn)
+      if turn[key]['invalidBid'] or turn[key]['invalidTile']: continue
+      bid = turn[key]['bid']
+      result.append(bid)
+    return result
 
   def rank_tiles(tile):
     if tile.owner != None:
@@ -214,19 +212,17 @@ def makeBid(self, tileGroupLetter):
         bidtile = t
         break
     if bidtile is None: return None
-    #tilesleft = 7 - len(self.myTiles)
-    tilesleft = needed_o
     self.debug('needed', needed_o)
-    myBid = Math.floor(self.gold/Math.max(1,tilesleft))
+    myBid = Math.floor(self.gold/Math.max(1,needed_o))
     #self.debug(self.gold, myBid)
-    extra = Math.round(Math.random() * (self.gold % Math.max(1,tilesleft)))
+    extra = Math.round(Math.random() * (self.gold % Math.max(1,needed_o)))
     #self.debug(extra)
     myBid += extra
     if len(self.turns) < 4:
       myBid = 11 + Math.round(Math.random() * 4)
-    #og = opp_bids()
-    #opponent_gold = 128 - og[0]
-    #self.debug(opponent_gold)
+    print self.turns
+    opp_gold = 128 - sum(bids('humans'))
+    self.debug(opp_gold)
 
     # if opponent has nothing to bid for, make a low bid
     opponent_will_bid = False
@@ -241,13 +237,16 @@ def makeBid(self, tileGroupLetter):
     if needed_o == 1:
       myBid = self.gold # bust the bank
     # never bid more gold than opponent has
-    #myBid = int(Math.min(myBid, opponent_gold + 1))
+    myBid = int(Math.min(myBid, opp_gold + 1))
     if myBid < 0:
       self.debug('bid below 0!', myBid)
       myBid = 1
     return {'gold': myBid, 'desiredTile': bidtile}
   
   #self.debug('round, turn', self.round, len(self.turns))
+  #self.debug('round', self.round, 'turn', len(self.turns))
+  #self.debug('ogre bids', bids('ogres'))
+  #self.debug('human bids', bids('humans'))
   result = better_strategy()
   return result
 
@@ -280,6 +279,7 @@ def main():
   self.tileGrid[1][2].owner = None
   self.tileGrid[1][3].owner = None
   self.tileGrid[1][5].owner = None
+
   print makeBid(self, tileGroupLetter)
 
 if __name__ == '__main__':
