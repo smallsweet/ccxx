@@ -42,8 +42,7 @@ class Tile(object):
     return self.id
 
 class Mockup_self(object):
-  def __init__(self):
-
+  def __init__(self, team='ogres'):
     # create grid
     width = 7
     height = 7
@@ -95,27 +94,31 @@ class Mockup_self(object):
     #tiles[7+6].owner = 'ogres' 
     
     self.gold = 114
-    self.team = 'ogres'
-    self._opponent = 'humans'
+    self.team = team
+    if team == 'ogres':
+      self._opponent = 'humans'
+    if team == 'humans':
+      self._opponent = 'ogres'
     self._tiles = tiles
     self.round = 0
-    self.turns = [{
-      "number": 0,
-      "tileGroup": "A",
-      "humanGold": 128,
-      "ogreGold": 114,
-      "humanBid": {
-        "bid": 6,
-        "team": "humans",
-        "desiredTile": self._tiles[4],
-        "invalidBid": False,
-        "invalidTile": False },
-      "ogreBid": {
-        "bid": 14,
-        "team": "ogres",
-        "desiredTile": self._tiles[10],
-        "invalidBid": False,
-        "invalidTile": False }}]
+    self.turns = []
+    #self.turns = [{
+    #  "number": 0,
+    #  "tileGroup": "A",
+    #  "humanGold": 128,
+    #  "ogreGold": 114,
+    #  "humanBid": {
+    #    "bid": 6,
+    #    "team": "humans",
+    #    "desiredTile": self._tiles[4],
+    #    "invalidBid": False,
+    #    "invalidTile": False },
+    #  "ogreBid": {
+    #    "bid": 14,
+    #    "team": "ogres",
+    #    "desiredTile": self._tiles[10],
+    #    "invalidBid": False,
+    #    "invalidTile": False }}]
   # functions and stuff
   @property
   def getTile(self, x, y):
@@ -150,6 +153,14 @@ class Mockup_self(object):
     return self._string(func=lambda x: x.tileGroupLetter)
   def debug(self, *args):
     print ' '.join(map(lambda x: str(x), args))
+  def playegame(self, humanfunc, ogrefunc):
+    letters = ['A', 'B', 'C', 'D', 'E', 'G', 'F']
+    tileGroupLetter = letters[self.round % len(letters)]
+    self.team = 'humans'
+    try:
+      hbid = humanfunc(self,tileGroupLetter)
+    except:
+      hbid = {None}
 
 if __name__ == '__main__':
   pass

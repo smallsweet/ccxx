@@ -7,16 +7,11 @@ import crisscross as cc
 #tileGroupLetter = 'B'
 Math = cc.Math_wrapper()
 
-
 def makeBid(self, tileGroupLetter):
   alltiles = []
-  histiles = []
-  mytiles = []
   for row in self.tileGrid:
     for cell in row:
       alltiles.append(cell)
-      if cell.owner == self.team: mytiles.append(cell)
-      if cell.owner and cell.owner != self.team: histiles.append(cell)
   
   def calc_weight(tile, team):
     #self.debug('called weight on', tile)
@@ -143,12 +138,6 @@ def makeBid(self, tileGroupLetter):
     #self.debug('wanted', wanted.values())
     return (wanted.values(), needed)
   
-  def tiley(tile):
-    return tile.y
-  
-  def tilex(tile):
-    return tile.x
-  
   def bids(player):
     result = []
     keys = {'humans': 'humanBid', 'ogres': 'ogreBid'}
@@ -169,8 +158,12 @@ def makeBid(self, tileGroupLetter):
     #opptiles = 0
     for n in tile.neighbors:
       tilegroups[n.tileGroupLetter] = True
-      if n.owner != None and n.owner != self.team:
-        score += 1
+      if n.owner != None:
+        if n.owner != self.team:
+          # close to opponent is ok for disruption, but let's ignore that for now
+          score += 0
+        if n.owner == self.team:
+          score += 10 # connected tiles cannot be disconnected
     score += (len(tilegroups) - 1)
     # favour center
     score += (3 - (Math.abs(3-tile.x)))
@@ -185,48 +178,79 @@ def makeBid(self, tileGroupLetter):
       end_o.append(self.tileGrid[i][6])
     start_h = self.tileGrid[0]
     end_h = self.tileGrid[6]
-    self.debug('start_o', start_o)
-    self.debug('end_o', end_o)
-    self.debug('start_h', start_h)
-    self.debug('end_h', end_h)
+    #self.debug('start_o', start_o)
+    #self.debug('end_o', end_o)
+    #self.debug('start_h', start_h)
+    #self.debug('end_h', end_h)
   
     (wanted_o, needed_o) = value(alltiles, 'ogres', start_o, end_o)
     (wanted_h, needed_h) = value(alltiles, 'humans', start_h, end_h)
-    self.debug('wanted human tiles: ', wanted_h)
-    self.debug('wanted ogre tiles: ', wanted_o)
-    
-    ranked_tiles = []
-    for t in wanted_o:
-      score = rank_tiles(t)
-      if t in wanted_h:
-        # if opponent also wants it then double value
-        score = score * 2
-      ranked_tiles.append((score, t))
-    ranked_tiles.sort(numerical_sort_tuple)
-    ranked_tiles.reverse()
-    #self.debug(ranked_tiles)
 
+    if self.team == 'ogres':
+      needed = needed_o
+      wanted = wanted_o
+      needed_opp = needed_h
+      wanted_opp = wanted_h
+    if self.team == 'humans':
+      needed = needed_h
+      wanted = wanted_h
+      needed_opp = needed_o
+      wanted_opp = wanted_o
+
+    wanted_both = []
+    for t in wanted_o:
+      if t in wanted_h:
+        wanted_both.append(t)
+    #self.debug('wanted human tiles: ', wanted_h)
+    #self.debug('wanted ogre tiles: ', wanted_o)
+    #self.debug('both teams want: ', wanted_both)
+
+    ranked_tiles = []
+    for t in wanted:
+      if t.tileGroupLetter != tileGroupLetter:
+        continue
+      score = rank_tiles(t)
+      if t in wanted_both:
+        score = score * 100
+      ranked_tiles.append((score, t))
+
+    ranked_tiles.sort(numerical_sort_tuple)
+    #ranked_tiles.reverse()
+    self.debug(ranked_tiles)
     bidtile = None
-    for (score, t) in ranked_tiles:
-      if t.tileGroupLetter == tileGroupLetter:
-        bidtile = t
-        break
-    if bidtile is None: return None
-    self.debug('needed', needed_o)
-    myBid = Math.floor(self.gold/Math.max(1,needed_o))
+    if len(ranked_tiles) > 0:
+      (score, bidtile) = ranked_tiles.pop()
+
+    if bidtile is None:
+      # we have nothing to bid for :(
+      # let's see if we can avoid wasting a turn
+      if len(wanted_opp) > 0 and needed_opp <= 4 and self.gold > (needed * 2)+2:
+        # let's make a bid for one of his tiles with a bid of 2
+        # just to screw with him if he's trying to steal
+        stealtile = None
+        for t in wanted_opp:
+          if t.tileGroupLetter == tileGroupLetter:
+            stealtile = t
+            break
+        if stealtile is not None:
+          return {'gold': 2, 'desiredTile': stealtile}
+      # nothing to do :(
+      return None
+
+    self.debug('needed', needed)
+    myBid = Math.floor(self.gold/Math.max(1,needed))
     #self.debug(self.gold, myBid)
-    extra = Math.round(Math.random() * (self.gold % Math.max(1,needed_o)))
+    extra = Math.round(Math.random() * (self.gold % Math.max(1,needed)))
     #self.debug(extra)
     myBid += extra
     if len(self.turns) < 4:
-      myBid = 11 + Math.round(Math.random() * 4)
-    print self.turns
+      myBid = 10 + Math.round(Math.random() * 4)
     opp_gold = 128 - sum(bids('humans'))
     self.debug(opp_gold)
 
     # if opponent has nothing to bid for, make a low bid
     opponent_will_bid = False
-    for t in wanted_h:
+    for t in wanted_opp:
       if t.tileGroupLetter == tileGroupLetter:
         opponent_will_bid = True
         break
@@ -234,7 +258,7 @@ def makeBid(self, tileGroupLetter):
       # steal a tile
       myBid = 1
 
-    if needed_o == 1:
+    if needed == 1:
       myBid = self.gold # bust the bank
     # never bid more gold than opponent has
     myBid = int(Math.min(myBid, opp_gold + 1))
@@ -252,6 +276,11 @@ def makeBid(self, tileGroupLetter):
 
 def main():
   self = cc.Mockup_self()
+  print self
+  print self.printtiles()
+  tileGroupLetter='A'
+  print makeBid(self, tileGroupLetter)
+
   self.tileGrid[0][4].owner = 'humans'
   self.tileGrid[2][4].owner = 'humans'
   self.tileGrid[3][4].owner = 'humans'
@@ -262,25 +291,26 @@ def main():
   self.tileGrid[1][2].owner = 'ogres'
   self.tileGrid[1][3].owner = 'ogres'
   self.tileGrid[1][5].owner = 'ogres'
+  self.tileGrid[1][4].tileGroupLetter = 'A'
 
   print self
   print self.printtiles()
-
-  tileGroupLetter = self.tileGrid[1][4].tileGroupLetter
   print makeBid(self, tileGroupLetter)
-  
-  self.tileGrid[0][4].owner = None
-  self.tileGrid[2][4].owner = None
-  self.tileGrid[3][4].owner = None
-  self.tileGrid[4][4].owner = None
 
-  self.tileGrid[1][0].owner = None
-  self.tileGrid[1][1].owner = None
-  self.tileGrid[1][2].owner = None
-  self.tileGrid[1][3].owner = None
-  self.tileGrid[1][5].owner = None
-
+  self.team='humans'
   print makeBid(self, tileGroupLetter)
+
+  self.tileGrid[1][4].owner = 'ogres'
+  self.tileGrid[2][3].owner = 'ogres'
+  self.tileGrid[1][3].owner = 'humans'
+  self.tileGrid[0][6].tileGroupLetter='B'
+  self.tileGrid[1][6].tileGroupLetter='B'
+  self.tileGrid[2][6].tileGroupLetter='B'
+  self.tileGrid[6][6].tileGroupLetter='A'
+  print self
+  print self.printtiles()
+  print makeBid(self, tileGroupLetter)
+
 
 if __name__ == '__main__':
   main()
