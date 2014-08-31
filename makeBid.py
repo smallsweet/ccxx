@@ -109,10 +109,13 @@ def makeBid(self, tileGroupLetter):
     #self.debug('costs', costs)
     #self.debug('parents', parents)
     #self.debug('objectives', objectives)
-    
+
     #print parents
+    path = []
     p = objectives[0] 
-    path = [p]
+    if p.owner is None:
+      path.append(p)
+
     while len(parents[p.id]) > 0:
       #print p, parents[p.id]
       p = parents[p.id][0]
@@ -201,8 +204,11 @@ def makeBid(self, tileGroupLetter):
     for t in wanted_o:
       if t in wanted_h:
         wanted_both.append(t)
+
     #self.debug('wanted human tiles: ', wanted_h)
+    #self.debug('needed h', needed_h)
     #self.debug('wanted ogre tiles: ', wanted_o)
+    #self.debug('needed o', needed_o)
     #self.debug('both teams want: ', wanted_both)
 
     ranked_tiles = []
@@ -311,6 +317,17 @@ def main():
   print self.printtiles()
   print makeBid(self, tileGroupLetter)
 
+  self = cc.Mockup_self()
+  self.tileGrid[3][1].owner = 'ogres'
+  self.tileGrid[3][2].owner = 'ogres'
+  self.tileGrid[3][3].owner = 'ogres'
+  self.tileGrid[3][4].owner = 'ogres'
+  self.tileGrid[3][5].owner = 'ogres'
+  self.tileGrid[3][6].owner = 'ogres'
+  self.tileGrid[3][0].tileGroupLetter = 'A'
+  print self
+  print self.printtiles()
+  print makeBid(self, tileGroupLetter)
 
 if __name__ == '__main__':
   main()
